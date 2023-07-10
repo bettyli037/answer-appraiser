@@ -1,6 +1,3 @@
-"""Compute scores for each result in the given message."""
-
-
 def get_confidence(result, message, logger):
     """
     This function iterates through the results from multiple ARAs,
