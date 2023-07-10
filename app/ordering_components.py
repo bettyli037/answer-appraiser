@@ -4,10 +4,10 @@
 def get_confidence(result, message, logger):
     """
     This function iterates through the results from multiple ARAs,
-    If only a single score is non-zero the result is thresholded to be in [0,1-eps] 
+    If only a single score is non-zero the result is thresholded to be in [0,1-eps]
     If a result has non-zero scores from multiple ARAs,
     then all the scores are added together and thresholded to be in [0,1]
-    
+
     eps is set to 0.001
     """
     score_sum = 0
