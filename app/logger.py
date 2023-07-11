@@ -2,6 +2,7 @@ from collections import deque
 from datetime import datetime
 import json
 import logging
+from logging import config
 
 
 class ReasonerLogEntryFormatter(logging.Formatter):
@@ -73,4 +74,4 @@ def setup_logger():
     with open("logging_setup.json", "r") as f:
         logging_config = json.load(f)
 
-    logging.config.dictConfig(logging_config)
+    config.dictConfig(logging_config)

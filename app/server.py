@@ -1,6 +1,9 @@
+from io import BytesIO
+import json
 import logging
 import traceback
 import os
+import zipfile
 
 from fastapi import Body, BackgroundTasks
 from fastapi.responses import JSONResponse
@@ -58,6 +61,35 @@ APP.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+clinical_evidence_edges = {}
+
+
+@APP.on_event("startup")
+def load_clinical_evidence_edges():
+    """Load in precomputed clinical evidence edges.
+
+    This file is very large, ~12GB, so will take some time to load.
+    """
+    global clinical_evidence_edges
+    LOGGER.info("Loading clinical evidence edges...")
+    clinical_evidence_edges_url = os.getenv(
+        "CLINICAL_EVIDENCE_EDGES_URL",
+        "https://stars.renci.org/var/answer_appraiser/edges_merged.zip",
+    )
+    response = httpx.get(clinical_evidence_edges_url)
+    response.raise_for_status()
+    LOGGER.info("Downloaded edges. Unzipping...")
+    buffer = BytesIO(response.content)
+    with zipfile.ZipFile(buffer, "r") as zip_ref:
+        edge_file = zip_ref.namelist()[0]
+        with zip_ref.open(edge_file) as file:
+            content = file.read()
+            decoded_content = content.decode("utf-8")
+
+            clinical_evidence_edges = json.loads(decoded_content)
+    LOGGER.info("Edges loaded!")
+
 
 EXAMPLE = {
     "message": {
@@ -121,7 +153,7 @@ ASYNC_EXAMPLE = {
 
 async def async_appraise(message, callback, logger: logging.Logger):
     try:
-        get_ordering_components(message, logger)
+        get_ordering_components(message, logger, clinical_evidence_edges)
     except Exception:
         logger.error(f"Something went wrong while appraising: {traceback.format_exc()}")
     try:
@@ -175,7 +207,7 @@ async def sync_get_appraisal(query: Query = Body(..., example=EXAMPLE)):
             status_code=400,
         )
     try:
-        get_ordering_components(message, logger)
+        get_ordering_components(message, logger, clinical_evidence_edges)
     except Exception:
         logger.error(f"Something went wrong while appraising: {traceback.format_exc()}")
     return Response(message=message)
