@@ -43,6 +43,7 @@ pipeline {
                     sh '''
                     docker pull ghcr.io/translatorsri/answer-appraiser:$BUILD_VERSION
                     aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin  853771734544.dkr.ecr.us-east-1.amazonaws.com
+                    docker tag ghcr.io/translatorsri/answer-appraiser:$BUILD_VERSION env.IMAGE_NAME
                     '''
                     docker.image(env.IMAGE_NAME).push("${BUILD_VERSION}")
                 }
