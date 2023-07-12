@@ -5,7 +5,7 @@ pipeline {
         disableConcurrentBuilds()
     }
     agent {
-        node { label 'translator && aws && build' }
+        node { label 'translator && aws && build && answer-appraiser' }
     }
     parameters {
         string(name: 'BUILD_VERSION', defaultValue: 'v0.1.0', description: 'The build version to deploy (optional)')
@@ -24,13 +24,6 @@ pipeline {
             }
         }
         stage('Build Version'){
-            when {
-                allOf {
-                    expression {
-                        return !params.BUILD_VERSION
-                    }
-                }
-            }
             steps{
                 script {
                     BUILD_VERSION_GENERATED = VersionNumber(
